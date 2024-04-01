@@ -1,0 +1,73 @@
+// controllers/meteostationController.js
+
+const express = require('express');
+const router = express.Router();
+
+
+// Добавление метеостанции
+module.exports = function(pool) {
+    const meteostationRepository = require('../repository/meteostationRepository')(pool);
+    router.post('/', async (req, res) => {
+        try {
+            await meteostationRepository.addMeteostation(req.body);
+            res.sendStatus(201);
+        } catch (error) {
+            console.error('Ошибка при добавлении метеостанции:', error);
+            res.status(500).json({message: 'Произошла ошибка при добавлении метеостанции'});
+        }
+    });
+
+// Удаление метеостанции
+    router.delete('/:id', async (req, res) => {
+        const {id} = req.params;
+        try {
+            if (!(await meteostationRepository.getMeasurement(id)).length) {
+                await meteostationRepository.deleteMeteostationSensor(id);
+                await meteostationRepository.deleteMeteostation(id);
+                res.sendStatus(200);
+            } else {
+                throw new Error('Невозможно удалить, существуют записи');
+            }
+        } catch (error) {
+            console.error('Ошибка при удалении метеостанции:', error);
+            res.status(500).json({message: 'Произошла ошибка при удалении метеостанции'});
+        }
+    });
+
+// Обновление информации о метеостанции
+    router.put('/:id', async (req, res) => {
+        const {id} = req.params;
+        try {
+            await meteostationRepository.updateMeteostation({id, ...req.body});
+            res.sendStatus(200);
+        } catch (error) {
+            console.error('Ошибка при обновлении метеостанции:', error);
+            res.status(500).json({message: 'Произошла ошибка при обновлении метеостанции'});
+        }
+    });
+
+// Получение всех метеостанций
+    router.get('/', async (req, res) => {
+        try {
+            const meteostations = await meteostationRepository.getAllMeteostations();
+            res.json(meteostations);
+        } catch (error) {
+            console.error('Ошибка при получении всех метеостанций:', error);
+            res.status(500).json({message: 'Произошла ошибка при получении всех метеостанций'});
+        }
+    });
+
+// Получение датчиков для метеостанции
+    router.get('/:station_id/sensor', async (req, res) => {
+        const {station_id} = req.params;
+        try {
+            const sensors = await meteostationRepository.getSensorsByMeteostation(station_id);
+            res.json(sensors);
+        } catch (error) {
+            console.error('Ошибка при получении датчиков для метеостанции:', error);
+            res.status(500).json({message: 'Произошла ошибка при получении датчиков для метеостанции'});
+        }
+    });
+    return router;
+}
+

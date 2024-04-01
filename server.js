@@ -20,6 +20,7 @@ app.use(express.json());
 
 // Подключаем роуты и передаем пул соединений
 const apiRoutes = require('./routes/apiRoutes')(pool); // Вызываем функцию, передавая pool
+
 app.use('/api', apiRoutes);
 
 // Запускаем сервер
