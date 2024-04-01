@@ -1,0 +1,8 @@
+// Подключаемся к базе данных PostgreSQL
+const pool = new Pool({
+    user: 'postgres',
+    host: 'localhost',
+    database: 'postgres',
+    password: '5258',
+    port: 5432 // Порт PostgreSQL
+});
