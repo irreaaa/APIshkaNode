@@ -4,7 +4,7 @@ const express = require('express');
 const router = express.Router();
 
 module.exports = function(pool) {
-    // Получение списка датчиков
+    // Просмотр всех моделей
     router.get('/', async (req, res) => {
         try {
             const client = await pool.connect();
@@ -17,7 +17,7 @@ module.exports = function(pool) {
         }
     });
 
-    // Получение информации о датчике по ID
+    // Просмотр конкретной модели
     router.get('/:id', async (req, res) => {
         const id = req.params.id;
         try {
@@ -31,7 +31,7 @@ module.exports = function(pool) {
         }
     });
 
-    // Добавление нового датчика
+    // Создание новой модели
     router.post('/', async (req, res) => {
         const { sensorName, sensor_id } = req.body;
         try {
@@ -45,7 +45,7 @@ module.exports = function(pool) {
         }
     });
 
-    // Обновление информации о датчике
+    // Редактирование конкретной модели
     router.put('/:id', async (req, res) => {
         const id = req.params.id;
         const { sensorName } = req.body;

@@ -85,10 +85,37 @@ module.exports = function (pool) {
     }
 
     async function getAllMeteostationSensors() {
-        const query = 'SELECT * FROM meteostations m join meteostations_sensors ms on m.station_id = ms.station_id join sensors s on ms.sensor_id = s.sensor_id;';
+        const query = 'SELECT * FROM meteostations m JOIN meteostations_sensors ms ON m.station_id = ms.station_id JOIN sensors s ON ms.sensor_id = s.sensor_id;';
         const result = await pool.query(query);
 
-        return result.rows;
+        const meteostations = {};
+        result.rows.forEach(row => {
+            const { station_id, station_name, station_longitude, station_latitude, sensor_inventory_number, sensor_id, sensor_name, sensor_added_ts, sensor_remove_ts } = row;
+            if (!meteostations[station_id]) {
+                meteostations[station_id] = {
+                    station_id,
+                    station_name,
+                    station_longitude,
+                    station_latitude,
+                    sensors: []
+                };
+            }
+            meteostations[station_id].sensors.push({
+                sensor_inventory_number,
+                sensor_id,
+                sensor_name,
+                sensor_added_ts,
+                sensor_remove_ts
+            });
+        });
+
+        const meteostationsArray = Object.values(meteostations).map(station => {
+            return {
+                meteostation: station
+            };
+        });
+
+        return { meteostations_sensors: meteostationsArray };
     }
     return {
         addMeteostation,

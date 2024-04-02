@@ -9,6 +9,12 @@ module.exports = function(pool) {
     const meteostationRepository = require('../repository/meteostationRepository')(pool);
     router.post('/', async (req, res) => {
         try {
+            if(req.body.meteostation.longitude > -180 < 180) {
+                return res.status(300).json({message: 'ограничение нв longitude от -180 до 180'});
+            }
+            if(req.body.meteostation.latitude > -180 < 180) {
+                return res.status(300).json({message: 'ограничение нв latitude от -180 до 180'});
+            }
             await meteostationRepository.addMeteostation(req.body);
             res.sendStatus(201);
         } catch (error) {
@@ -38,6 +44,12 @@ module.exports = function(pool) {
     router.put('/:id', async (req, res) => {
         const {id} = req.params;
         try {
+            if(req.body.meteostation.longitude > -180 < 180) {
+                return res.status(300).json({message: 'ограничение нв longitude от -180 до 180'});
+            }
+            if(req.body.meteostation.latitude > -180 < 180) {
+                return res.status(300).json({message: 'ограничение нв latitude от -180 до 180'});
+            }
             await meteostationRepository.updateMeteostation({id, ...req.body});
             res.sendStatus(200);
         } catch (error) {
@@ -71,6 +83,12 @@ module.exports = function(pool) {
 
     router.post('/aloha', async (req, res) => {
         try {
+            if(req.body.meteostation.longitude > -180 < 180) {
+                return res.status(300).json({message: 'ограничение нв longitude от -180 до 180'});
+            }
+            if(req.body.meteostation.latitude > -180 < 180) {
+                return res.status(300).json({message: 'ограничение нв latitude от -180 до 180'});
+            }
             await meteostationRepository.addMeteostationSensor(req.body.meteostations_sensors);
             res.sendStatus(201);
         } catch (error) {
@@ -83,6 +101,12 @@ module.exports = function(pool) {
         const { sensor_inventory_number } = req.params;
         const { removed_ts } = req.body;
         try {
+            // if(req.body.meteostation.longitude > -180 < 180) {
+            //     return res.status(300).json({message: 'ограничение нв longitude от -180 до 180'});
+            // }
+            // if(req.body.meteostation.latitude > -180 < 180) {
+            //     return res.status(300).json({message: 'ограничение нв latitude от -180 до 180'});
+            // }
             await meteostationRepository.removeMeteostationSensor(sensor_inventory_number, removed_ts);
             res.sendStatus(200);
         } catch (error) {
@@ -91,7 +115,7 @@ module.exports = function(pool) {
         }
     });
 
-    router.get('/', async (req, res) => {
+    router.get('/aloha', async (req, res) => {
         try {
             const sensors = await meteostationRepository.getAllMeteostationSensors();
             res.json({ meteostations_sensors: sensors });
