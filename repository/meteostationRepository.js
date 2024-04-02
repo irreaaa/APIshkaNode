@@ -62,6 +62,34 @@ module.exports = function (pool) {
         const result = await pool.query(query, [meteostation_id]);
         return result.rows;
     }
+    async function addMeteostationSensor(meteostationSensor) {
+        for (const a of meteostationSensor) {
+            console.log(a)
+            const { meteostation_sensor } = a;
+            let { sensor_inventory_number, station_id, sensor_id, added_ts } = meteostation_sensor;
+            if(added_ts == null) {
+                added_ts = new Date();
+            }
+            const query = 'INSERT INTO meteostations_sensors (sensor_inventory_number, station_id, sensor_id, added_ts) VALUES ($1, $2, $3, $4)';
+            await pool.query(query, [sensor_inventory_number, station_id, sensor_id, added_ts]);
+        }
+
+    }
+
+    async function removeMeteostationSensor(sensor_inventory_number, removed_ts) {
+        if(removed_ts == null) {
+            removed_ts = new Date();
+        }
+        const query = 'UPDATE meteostations_sensors SET removed_ts = $1 WHERE sensor_inventory_number = $2';
+        await pool.query(query, [removed_ts, sensor_inventory_number]);
+    }
+
+    async function getAllMeteostationSensors() {
+        const query = 'SELECT * FROM meteostations m join meteostations_sensors ms on m.station_id = ms.station_id join sensors s on ms.sensor_id = s.sensor_id;';
+        const result = await pool.query(query);
+
+        return result.rows;
+    }
     return {
         addMeteostation,
         deleteMeteostation,
@@ -70,8 +98,12 @@ module.exports = function (pool) {
         updateMeteostation,
         getAllMeteostations,
         getSensorsByMeteostation,
-        getOne,
-        getSensorsFromMeteostation
+        getSensorsFromMeteostation,
+        addMeteostationSensor,
+        removeMeteostationSensor,
+        getAllMeteostationSensors,
+
+                 getOne
     };
 
 }

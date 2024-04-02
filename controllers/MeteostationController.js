@@ -68,6 +68,39 @@ module.exports = function(pool) {
             res.status(500).json({message: 'Произошла ошибка при получении датчиков для метеостанции'});
         }
     });
+
+    router.post('/aloha', async (req, res) => {
+        try {
+            await meteostationRepository.addMeteostationSensor(req.body.meteostations_sensors);
+            res.sendStatus(201);
+        } catch (error) {
+            console.error('Ошибка при привязке новых датчиков к метеостанциям:', error);
+            res.status(500).json({ message: 'Произошла ошибка при привязке новых датчиков к метеостанциям' });
+        }
+    });
+
+    router.put('/:sensor_inventory_number/removed_ts', async (req, res) => {
+        const { sensor_inventory_number } = req.params;
+        const { removed_ts } = req.body;
+        try {
+            await meteostationRepository.removeMeteostationSensor(sensor_inventory_number, removed_ts);
+            res.sendStatus(200);
+        } catch (error) {
+            console.error('Ошибка при удалении датчика:', error);
+            res.status(500).json({ message: 'Произошла ошибка при удалении датчика' });
+        }
+    });
+
+    router.get('/', async (req, res) => {
+        try {
+            const sensors = await meteostationRepository.getAllMeteostationSensors();
+            res.json({ meteostations_sensors: sensors });
+        } catch (error) {
+            console.error('Ошибка при получении всех датчиков:', error);
+            res.status(500).json({ message: 'Произошла ошибка при получении всех датчиков' });
+        }
+    });
+
     return router;
 }
 
