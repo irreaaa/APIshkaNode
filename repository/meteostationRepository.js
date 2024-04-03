@@ -21,6 +21,11 @@ module.exports = function (pool) {
         const result = await pool.query(query, [meteostation_id]);
         return result.rows;
     }
+    async function getMeasurement2(sensor_inventory_number) {
+        const query = 'SELECT * FROM meteostations_sensors ms JOIN sensors_measurements sm ON ms.sensor_id = sm.sensor_id JOIN measurements_type mt ON mt.type_id = sm.type_id JOIN measurements m ON mt.type_id = m.measuremnet_type WHERE m.sensor_inventory_number = $1';
+        const result = await pool.query(query, [sensor_inventory_number]);
+        return result.rows;
+    }
 
 // Удаление связанных с метеостанцией датчиков
     async function deleteMeteostationSensor(id) {
@@ -44,7 +49,7 @@ module.exports = function (pool) {
 
 // Получение датчиков для метеостанции
     async function getSensorsByMeteostation(stationId) {
-        const query = 'SELECT s.sensor_id, s.sensor_name FROM sensors s JOIN meteostations_sensors ms ON s.sensor_id = ms.sensor_id WHERE ms.station_id = $1';
+        const query = 'SELECT s.sensor_id, s.sensor_name FROM sensors s JOIN meteostations_sensors ms ON s.sensor_id = ms.sensor_id  WHERE ms.station_id = $1';
         const result = await pool.query(query, [stationId]);
         return result.rows;
     }
@@ -129,8 +134,9 @@ module.exports = function (pool) {
         addMeteostationSensor,
         removeMeteostationSensor,
         getAllMeteostationSensors,
+        getMeasurement2,
 
-                 getOne
+        getOne
     };
 
 }
