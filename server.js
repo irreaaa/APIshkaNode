@@ -7,7 +7,7 @@ const dotenv = require('dotenv');
 // Создаем экземпляр Express приложения
 const app = express();
 
-// Загрузка конфигурации из файла .env
+// Загрузка конфигурации из файла ..env
 dotenv.config();
 
 // Подключаемся к базе данных PostgreSQL
