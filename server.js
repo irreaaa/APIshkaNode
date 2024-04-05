@@ -4,13 +4,15 @@ const express = require('express');
 const { Pool } = require('pg');
 const dotenv = require('dotenv');
 
+const PgWrapper = require('./wrapper/PgWrapper.js'); // Путь к вашему классу PgWrapper
+
 // Создаем экземпляр Express приложения
 const app = express();
 
-// Загрузка конфигурации из файла ..env
+// Загрузка конфигурации из файла .env
 dotenv.config();
 
-// Подключаемся к базе данных PostgreSQL
+// Создаем экземпляр Pool
 const pool = new Pool({
     user: process.env.DB_USER,
     host: process.env.DB_HOST,
@@ -18,6 +20,9 @@ const pool = new Pool({
     password: process.env.DB_PASSWORD,
     port: process.env.DB_PORT
 });
+
+// Создаем экземпляр PgWrapper и передаем в него pool
+const pgWrapper = new PgWrapper(pool);
 
 // Пример использования конфигурации
 console.log('Пользователь базы данных:', process.env.DB_USER);
@@ -29,8 +34,8 @@ console.log('Порт базы данных:', process.env.DB_PORT);
 // Подключаем middleware для обработки JSON данных
 app.use(express.json());
 
-// Подключаем роуты и передаем пул соединений
-const apiRoutes = require('./routes/apiRoutes')(pool); // Вызываем функцию, передавая pool
+// Передаем экземпляр PgWrapper в роуты
+const apiRoutes = require('./routes/apiRoutes')(pgWrapper);
 
 app.use('/api', apiRoutes);
 

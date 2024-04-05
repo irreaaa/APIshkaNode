@@ -12,7 +12,7 @@ const express = require('express');
 const router = express.Router();
 
 
-module.exports = function (pool) {
+module.exports = function (pgWrapper) {
     // TODO: POST Добавление новых измерений (отправляется массив объектов) ( Пример: {
     //     "measurements": [
     //         {
@@ -31,18 +31,17 @@ module.exports = function (pool) {
     // } )
     router.post('/', async (req, res) => {
         try {
-            await pool.query('BEGIN');
             const {measurements} = req.body;
-            const query = 'INSERT INTO measurements (sensor_inventory_number, measurement_value, measurement_ts, measuremnet_type) VALUES ($1, $2, $3, $4)';
-            for (const measurement of measurements) {
-                await pool.query(query, [measurement.sensor_inventory_number, measurement.measurement_value, measurement.measurement_ts, measurement.measurement_type]);
-            }
-            await pool.query('COMMIT');
-            res.status(201).send('Measurements added successfully');
+            await pgWrapper.transaction(async (client) => {
+                const query = 'INSERT INTO measurements (sensor_inventory_number, measurement_value, measurement_ts, measuremnet_type) VALUES ($1, $2, $3, $4)';
+                for (const measurement of measurements) {
+                    await client.query(query, [measurement.sensor_inventory_number, measurement.measurement_value, measurement.measurement_ts, measurement.measurement_type]);
+                }
+            });
+            res.status(201).json({message: 'Measurements added successfully'});
         } catch (error) {
-            await pool.query('ROLLBACK');
             console.error('Error adding measurements', error);
-            res.status(500).send('Error adding measurements');
+            return res.status(500).send('Error adding measurements');
         }
     });
 
@@ -51,80 +50,69 @@ module.exports = function (pool) {
     router.get('/', async (req, res) => {
         try {
             const {meteostation, sensor} = req.query;
-
-
-
             if (meteostation && sensor) {
                 let query2 = 'SELECT * FROM measurements JOIN public.measurements_type mt on mt.type_id = measurements.measuremnet_type JOIN public.sensors_measurements sm on mt.type_id = sm.type_id JOIN public.sensors s on s.sensor_id = sm.sensor_id WHERE measurements.sensor_inventory_number = $1 and sm.sensor_id = $2';
-                const result = await pool.query(query2, [meteostation, sensor]);
+                const result = await pgWrapper.query(query2, [meteostation, sensor]);
                 return res.json(result.rows);
             }
             if (meteostation) {
                 let query1 = 'SELECT * FROM measurements WHERE public.measurements.sensor_inventory_number = $1';
-                const result = await pool.query(query1, [meteostation]);
+                const result = await pgWrapper.query(query1, [meteostation]);
                 return res.json(result.rows);
             }
             if (sensor) {
                 let query3 = 'SELECT * FROM measurements JOIN public.measurements_type mt on mt.type_id = measurements.measuremnet_type JOIN public.sensors_measurements sm on mt.type_id = sm.type_id JOIN public.sensors s on s.sensor_id = sm.sensor_id WHERE sm.sensor_id = $1';
-                const result = await pool.query(query3, [sensor]);
+                const result = await pgWrapper.query(query3, [sensor]);
                 return res.json(result.rows);
             }
-            const result = await pool.query('SELECT * FROM measurements');
-
+            const result = await pgWrapper.query('SELECT * FROM measurements');
             res.json(result.rows);
         } catch (error) {
-
             console.error('Error fetching measurements', error);
-            res.status(500).send('Error fetching measurements');
+            return res.status(500).send('Error fetching measurements');
         }
     });
 
     //TODO: УДАЛЕНИЕ ЗАПИСЕЙ ПО УСЛОВИЮ
     router.delete('/', async (req, res) => {
-        const client = await pool.connect();
         try {
             const {meteostation, sensor} = req.query;
-            // Начать транзакцию
-            await client.query('BEGIN');
+            await pgWrapper.transaction(async (client) => {
 
-            if (meteostation && sensor) {
-                const deleteQuery = ` DELETE
-                                      FROM measurements
-                                      WHERE sensor_inventory_number IN (SELECT sensor_inventory_number
-                                                                        FROM meteostations_sensors
-                                                                        WHERE sensor_id = $1
-                                                                          AND station_id = $2)`;
-                await client.query(deleteQuery, [sensor, meteostation]);
-                return res.json({message: 'Успешно удалено'});
-            }
-            if (sensor) {
-                const deleteQuery = ` DELETE
-                                      FROM measurements
-                                      WHERE sensor_inventory_number IN (SELECT sensor_inventory_number
-                                                                        FROM meteostations_sensors
-                                                                        WHERE sensor_id = $1
-                                      )`;
-                await client.query(deleteQuery, [sensor]);
-                return res.json({message: 'Успешно удалено'});
-            }
-            if (meteostation) {
-                const deleteQuery = ` DELETE
-                                      FROM measurements
-                                      WHERE sensor_inventory_number IN (SELECT sensor_inventory_number
-                                                                        FROM meteostations_sensors
-                                                                        WHERE meteostations_sensors.station_id = $1
-                                      )`;
-                await client.query(deleteQuery, [meteostation]);
-                return res.json({message: 'Успешно удалено'});
-            }
-            await client.query('COMMIT');
+                if (meteostation && sensor) {
+                    const deleteQuery = ` DELETE
+                                          FROM measurements
+                                          WHERE sensor_inventory_number IN (SELECT sensor_inventory_number
+                                                                            FROM meteostations_sensors
+                                                                            WHERE sensor_id = $1
+                                                                              AND station_id = $2)`;
+                    await client.query(deleteQuery, [sensor, meteostation]);
+                    return res.json({message: 'Успешно удалено'});
+                }
+                if (sensor) {
+                    const deleteQuery = ` DELETE
+                                          FROM measurements
+                                          WHERE sensor_inventory_number IN (SELECT sensor_inventory_number
+                                                                            FROM meteostations_sensors
+                                                                            WHERE sensor_id = $1)`;
+                    await client.query(deleteQuery, [sensor]);
+                    return res.json({message: 'Успешно удалено'});
+                }
+                if (meteostation) {
+                    const deleteQuery = ` DELETE
+                                          FROM measurements
+                                          WHERE sensor_inventory_number IN (SELECT sensor_inventory_number
+                                                                            FROM meteostations_sensors
+                                                                            WHERE meteostations_sensors.station_id = $1)`;
+                    await client.query(deleteQuery, [meteostation]);
+                    return res.json({message: 'Успешно удалено'});
+                }
+            });
             console.log('Записи из таблицы "measurements" успешно удалены.');
-            client.release();
-
             return res.status(400).json({message: 'Ничего не удалено, добавьте параметры meteostation и sensor'})
         } catch (error) {
-            await client.query('ROLLBACK');
             console.error('Ошибка при удалении записей из таблицы "measurements":', error);
+            return res.status(500).json({message: 'Ничего не удалено, ошибка на стороне сервера'})
         }
     });
     return router;

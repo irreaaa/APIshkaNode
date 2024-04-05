@@ -64,23 +64,22 @@ const router = express.Router();
 
 
 // Добавление метеостанции
-module.exports = function(pool) {
-    const meteostationRepository = require('../repository/meteostationRepository')(pool);
+module.exports = function(pgWrapper) {
+    const meteostationRepository = require('../repository/meteostationRepository')(pgWrapper);
     // TODO: ОБЫЧНОЕ ДОБАВЛЕНИЕ METEOSTATION
     router.post('/', async (req, res) => {
         try {
-            await pool.query('BEGIN');
             if(req.body.meteostation.longitude > -180 < 180) {
                 return res.status(300).json({message: 'ограничение нв longitude от -180 до 180'});
             }
             if(req.body.meteostation.latitude > -180 < 180) {
                 return res.status(300).json({message: 'ограничение нв latitude от -180 до 180'});
             }
-            await meteostationRepository.addMeteostation(req.body);
-            await pool.query('COMMIT');
+            await pgWrapper.transaction(async () => {
+                await meteostationRepository.addMeteostation(req.body);
+            });
             res.sendStatus(201);
         } catch (error) {
-            await pool.query('ROLLBACK');
             console.error('Ошибка при добавлении метеостанции:', error);
             res.status(500).json({message: 'Произошла ошибка при добавлении метеостанции'});
         }
@@ -90,17 +89,16 @@ module.exports = function(pool) {
     router.delete('/:id', async (req, res) => {
         const {id} = req.params;
         try {
-            await pool.query('BEGIN');
             if (!(await meteostationRepository.getMeasurement(id)).length) {
-                await meteostationRepository.deleteMeteostationSensor(id);
-                await meteostationRepository.deleteMeteostation(id);
-                await pool.query('COMMIT');
+                await pgWrapper.transaction(async () => {
+                    await meteostationRepository.deleteMeteostationSensor(id);
+                    await meteostationRepository.deleteMeteostation(id);
+                });
                 return res.status(200);
             } else {
                 return res.status(400).json({message: 'Существуют записи'})
             }
         } catch (error) {
-            await pool.query('ROLLBACK');
             console.error('Ошибка при удалении метеостанции:', error);
             res.status(500).json({message: 'Произошла ошибка при удалении метеостанции'});
         }
@@ -116,12 +114,11 @@ module.exports = function(pool) {
             if(req.body.meteostation.latitude > -180 < 180) {
                 return res.status(300).json({message: 'ограничение нв latitude от -180 до 180'});
             }
-            await pool.query('BEGIN');
-            await meteostationRepository.updateMeteostation({id, ...req.body});
-            await pool.query('COMMIT');
+            await pgWrapper.transaction(async () => {
+                await meteostationRepository.updateMeteostation({id, ...req.body});
+            });
             res.sendStatus(200);
         } catch (error) {
-            await pool.query('ROLLBACK');
             console.error('Ошибка при обновлении метеостанции:', error);
             res.status(500).json({message: 'Произошла ошибка при обновлении метеостанции'});
         }
@@ -130,11 +127,10 @@ module.exports = function(pool) {
     //TODO: ПРОСМОТР ВСЕХ МЕТЕОСТАНЦИЙ
     router.get('/', async (req, res) => {
         try {
-            const meteostations = await meteostationRepository.getAllMeteostations();
-            res.json(meteostations);
+            return res.json(meteostationRepository.getAllMeteostations());
         } catch (error) {
             console.error('Ошибка при получении всех метеостанций:', error);
-            res.status(500).json({message: 'Произошла ошибка при получении всех метеостанций'});
+            return res.status(500).json({message: 'Произошла ошибка при получении всех метеостанций'});
         }
     });
 
@@ -142,8 +138,7 @@ module.exports = function(pool) {
     router.get('/:station_id/sensor', async (req, res) => {
         const {station_id} = req.params;
         try {
-            const sensors = await meteostationRepository.getSensorsByMeteostation(station_id);
-            res.json(sensors);
+            res.json(meteostationRepository.getSensorsByMeteostation(station_id));
         } catch (error) {
             console.error('Ошибка при получении датчиков для метеостанции:', error);
             res.status(500).json({message: 'Произошла ошибка при получении датчиков для метеостанции'});
@@ -158,12 +153,11 @@ module.exports = function(pool) {
             if(req.body.meteostation.latitude > -180 < 180) {
                 return res.status(300).json({message: 'ограничение нв latitude от -180 до 180'});
             }
-            await pool.query('BEGIN');
-            await meteostationRepository.addMeteostationSensor(req.body.meteostations_sensors);
-            await pool.query('COMMIT');
+            await pgWrapper.transaction(async () => {
+                await meteostationRepository.addMeteostationSensor(req.body.meteostations_sensors);
+            });
             res.sendStatus(201);
         } catch (error) {
-            await pool.query('ROLLBACK');
             console.error('Ошибка при привязке новых датчиков к метеостанциям:', error);
             res.status(500).json({ message: 'Произошла ошибка при привязке новых датчиков к метеостанциям' });
         }
@@ -173,13 +167,12 @@ module.exports = function(pool) {
         const { sensor_inventory_number } = req.params;
         const { removed_ts } = req.body;
         try {
-            await pool.query('BEGIN');
             if ((await meteostationRepository.getMeasurement2(sensor_inventory_number)).length) return res.status(400).json({message: 'Существуют измерения'});
-            await meteostationRepository.removeMeteostationSensor(sensor_inventory_number, removed_ts);
-            await pool.query('COMMIT');
+            await pgWrapper.transaction(async () => {
+                await meteostationRepository.removeMeteostationSensor(sensor_inventory_number, removed_ts);
+            });
             res.sendStatus(200);
         } catch (error) {
-            await pool.query('ROLLBACK');
             console.error('Ошибка при удалении датчика:', error);
             res.status(500).json({ message: 'Произошла ошибка при удалении датчика' });
         }
