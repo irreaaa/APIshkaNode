@@ -77,7 +77,7 @@ module.exports = function(pool) {
                 return res.status(300).json({message: 'ограничение нв latitude от -180 до 180'});
             }
             await meteostationRepository.addMeteostation(req.body);
-            await pool.query('BEGIN');
+            await pool.query('COMMIT');
             res.sendStatus(201);
         } catch (error) {
             await pool.query('ROLLBACK');
