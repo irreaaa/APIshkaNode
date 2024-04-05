@@ -31,9 +31,9 @@ CREATE TABLE "meteostations_sensors" (
 );
 
 CREATE TABLE "measurements" (
-                                "sensor_inventory_number" char(15),
+                                "sensor_inventory_number" integer,
                                 "measurement_value" numeric(17,2),
-                                "measurement_ts" timestamp,
+                                "measurement_ts" timestamp default CURRENT_TIMESTAMP,
                                 "measuremnet_type" integer
 );
 
