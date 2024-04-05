@@ -2,18 +2,29 @@
 
 const express = require('express');
 const { Pool } = require('pg');
+const dotenv = require('dotenv');
 
 // Создаем экземпляр Express приложения
 const app = express();
 
+// Загрузка конфигурации из файла .env
+dotenv.config();
+
 // Подключаемся к базе данных PostgreSQL
 const pool = new Pool({
-    user: 'postgres',
-    host: 'localhost',
-    database: 'measur',
-    password: '2121',
-    port: 5432 // Порт PostgreSQL
+    user: process.env.DB_USER,
+    host: process.env.DB_HOST,
+    database: process.env.DB_DATABASE,
+    password: process.env.DB_PASSWORD,
+    port: process.env.DB_PORT
 });
+
+// Пример использования конфигурации
+console.log('Пользователь базы данных:', process.env.DB_USER);
+console.log('Хост базы данных:', process.env.DB_HOST);
+console.log('Имя базы данных:', process.env.DB_DATABASE);
+console.log('Пароль базы данных:', process.env.DB_PASSWORD);
+console.log('Порт базы данных:', process.env.DB_PORT);
 
 // Подключаем middleware для обработки JSON данных
 app.use(express.json());

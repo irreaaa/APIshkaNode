@@ -37,7 +37,7 @@ module.exports = function(pool) {
         try {
             const client = await pool.connect();
             const result = await client.query(`
-            SELECT
+                SELECT
                 sensors.sensor_id,
                 sensors.sensor_name,
                 array_agg(json_build_object('type_id', mt.type_id, 'measurement_formula', sm.measurment_formula)) AS measurement_types

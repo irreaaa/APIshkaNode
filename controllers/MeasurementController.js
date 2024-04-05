@@ -89,31 +89,31 @@ module.exports = function (pool) {
 
             if (meteostation && sensor) {
                 const deleteQuery = ` DELETE
-                                  FROM measurements
-                                  WHERE sensor_inventory_number IN (SELECT sensor_inventory_number
-                                                                    FROM meteostations_sensors
-                                                                    WHERE sensor_id = $1
-                                                                      AND station_id = $2)`;
+                                      FROM measurements
+                                      WHERE sensor_inventory_number IN (SELECT sensor_inventory_number
+                                                                        FROM meteostations_sensors
+                                                                        WHERE sensor_id = $1
+                                                                          AND station_id = $2)`;
                 await client.query(deleteQuery, [sensor, meteostation]);
                 return res.json({message: 'Успешно удалено'});
             }
             if (sensor) {
                 const deleteQuery = ` DELETE
-                                  FROM measurements
-                                  WHERE sensor_inventory_number IN (SELECT sensor_inventory_number
-                                                                    FROM meteostations_sensors
-                                                                    WHERE sensor_id = $1
-                                                                    )`;
+                                      FROM measurements
+                                      WHERE sensor_inventory_number IN (SELECT sensor_inventory_number
+                                                                        FROM meteostations_sensors
+                                                                        WHERE sensor_id = $1
+                                      )`;
                 await client.query(deleteQuery, [sensor]);
                 return res.json({message: 'Успешно удалено'});
             }
             if (meteostation) {
                 const deleteQuery = ` DELETE
-                                  FROM measurements
-                                  WHERE sensor_inventory_number IN (SELECT sensor_inventory_number
-                                                                    FROM meteostations_sensors
-                                                                    WHERE meteostations_sensors.station_id = $1
-                                                                    )`;
+                                      FROM measurements
+                                      WHERE sensor_inventory_number IN (SELECT sensor_inventory_number
+                                                                        FROM meteostations_sensors
+                                                                        WHERE meteostations_sensors.station_id = $1
+                                      )`;
                 await client.query(deleteQuery, [meteostation]);
                 return res.json({message: 'Успешно удалено'});
             }
