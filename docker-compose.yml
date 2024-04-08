@@ -1,0 +1,20 @@
+services:
+  app:
+    build: .
+    ports:
+      - "3000:3000"
+    depends_on:
+      - db
+    environment:
+      DB_HOST: localhost
+      DB_USER: postgres
+      DB_PASSWORD: 2121
+      DB_DATABASE: measur
+      DB_PORT: 5432
+
+  db:
+    image: postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 2121
+      POSTGRES_DB: measur
