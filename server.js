@@ -40,7 +40,7 @@ const apiRoutes = require('./routes/apiRoutes')(pgWrapper);
 app.use('/api', apiRoutes);
 
 // Запускаем сервер
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.NODE_DOCKER_PORT || 8080;
 app.listen(PORT, () => {
     console.log(`Сервер запущен на порту ${PORT}`);
 });

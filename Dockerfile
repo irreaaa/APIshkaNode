@@ -22,9 +22,9 @@ COPY . .
 # Добавляем переменные окружения для подключения к базе данных PostgreSQL
 ENV PGHOST=localhost
 ENV PGUSER=postgres
-ENV PGPASSWORD=2121
-ENV PGDATABASE=measur
-ENV PGPORT=5432
+ENV PGPASSWORD=5258
+ENV PGDATABASE=postgres
+ENV PGPORT=5433
 
 # Указываем порт, который будет слушать приложение
 EXPOSE 3000
