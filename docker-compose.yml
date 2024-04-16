@@ -32,7 +32,10 @@ services:
       - NODE_LOCAL_PORT=$NODE_DOCKER_PORT
     stdin_open: true
     tty: true
-    env_file: .env_api
+    env_file:
+      -.env_api 
+      -.env_db
+
 
 
 volumes:
