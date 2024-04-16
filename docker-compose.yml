@@ -29,7 +29,7 @@ services:
       - DB_PASSWORD=$POSTGRESDB_ROOT_PASSWORD
       - DB_DATABASE=$POSTGRESDB_DATABASE
       - DB_PORT=$POSTGRESDB_DOCKER_PORT
-      - NODE_LOCAL_PORT=NODE_DOCKER_PORT
+      - NODE_LOCAL_PORT=$NODE_DOCKER_PORT
     stdin_open: true
     tty: true
     env_file: .env
