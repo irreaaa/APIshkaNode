@@ -4,12 +4,12 @@ LABEL authors="irisp"
 
 RUN apk update && apk upgrade
 
-WORKDIR /api-test/src
+WORKDIR /api-test
 
 COPY src/package*.json ./
 
 RUN npm install
 
-COPY . .
+COPY src .
 
-CMD [ "node", "src/server.js" ]
+CMD [ "node", "server.js" ]
