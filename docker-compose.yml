@@ -14,7 +14,7 @@ services:
       - $POSTGRESDB_LOCAL_PORT:$POSTGRESDB_DOCKER_PORT
     volumes:
       - db:/var/lib/postgres
-    env_file: .env
+    env_file: .env_db
 
   app:
     build: .
@@ -32,7 +32,8 @@ services:
       - NODE_LOCAL_PORT=$NODE_DOCKER_PORT
     stdin_open: true
     tty: true
-    env_file: .env
+    env_file: .env_db
+
 
 volumes:
   db:
