@@ -6,14 +6,8 @@ services:
   db:
     image: postgres
     restart: unless-stopped
-    environment:
-      - POSTGRES_USER=$POSTGRESDB_USER
-      - POSTGRES_PASSWORD=$POSTGRESDB_ROOT_PASSWORD
-      - POSTGRES_DB=$POSTGRESDB_DATABASE
-    ports:
-      - $POSTGRESDB_LOCAL_PORT:$POSTGRESDB_DOCKER_PORT
     volumes:
-      - db:/var/lib/postgres
+      - db:/var/lib/postgresql/data
     env_file: .env_db
 
   app:
@@ -22,19 +16,12 @@ services:
     depends_on:
       - db
     ports:
-      - $NODE_LOCAL_PORT:$NODE_DOCKER_PORT
-    environment:
-      - DB_HOST=db
-      - DB_USER=$POSTGRESDB_USER
-      - DB_PASSWORD=$POSTGRESDB_ROOT_PASSWORD
-      - DB_DATABASE=$POSTGRESDB_DATABASE
-      - DB_PORT=$POSTGRESDB_DOCKER_PORT
-      - NODE_LOCAL_PORT=$NODE_DOCKER_PORT
+      - "6868:8080"
     stdin_open: true
     tty: true
     env_file:
-      -.env_api 
-      -.env_db
+      - .env_api
+      - .env_db
 
 
 
