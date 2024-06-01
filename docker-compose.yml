@@ -16,12 +16,12 @@ services:
     depends_on:
       - db
     ports:
-      - "6868:8080"
+      - $NODE_LOCAL_PORT:$NODE_DOCKER_PORT
     stdin_open: true
     tty: true
     env_file:
-      - .env_api
-      - .env_db
+      -.env_api 
+      -.env_db
 
 
 
